@@ -1,0 +1,4 @@
+agentify-core
+watchdog
+python-dotenv
+PyGObject
