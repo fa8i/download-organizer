@@ -1,41 +1,58 @@
 # Smart Download Organizer
 
-Este proyecto es un gestor de descargas inteligente impulsado por agentes de IA (`agentify`). Su objetivo categorizar y organizar automáticamente los archivos que descargas.
+This project is a smart download manager powered by AI agents ([**agentify**](https://github.com/fa8i/Agentify)). Its goal is to automatically categorize and organize the files you download.
 
-## Funcionalidad
+> [!NOTE]
+> This software is designed specifically for **Linux** environments (tested on Ubuntu with X11). It uses `systemd` for service management and GTK4 for the graphical interface.
 
-El sistema funciona como un demonio (daemon) en segundo plano que monitorea tu carpeta de `~/Descargas`. Cuando detecta un nuevo archivo:
+![Smart Download Organizer Demo](assets/pic_demo.png)
 
-1.  **Intercepta la descarga**: Detecta el nuevo archivo y espera a que termine de escribirse.
-2.  **Solicita Acción**: Muestra un diálogo emergente (popup) preguntando qué hacer. Opciones:
-    *   **Confirmar (Enter)**: Si escribes una instrucción, el Agente de IA la, procesará.
-    *   **Auto-clasificar (Timeout/Vacío)**: Si no respondes en 45 segundos o das Enter vacío, organiza el archivo automáticamente según su extensión.
-    *   **Cancelar (Esc)**: Ignora el archivo y lo deja donde está.
+## Functionality
 
-### Clasificación Automática
-Si no se dan instrucciones, los archivos se mueven a:
-*   `Imágenes`: .jpg, .png, .webp, ...
-*   `Documentos`: .pdf, .docx, .txt, ...
+The system runs as a background *daemon* monitoring your `~/Downloads` folder. When it detects a new file:
+
+1.  **Intercepts the download**: Detects the new file and waits for it to finish writing.
+2.  **Requests Action**: Shows a popup dialog asking what to do. Options:
+    *   **Confirm (Enter)**: If you type an instruction, the AI Agent will process it.
+    *   **Auto-classify (Timeout/Empty)**: If you don't respond within 45 seconds or press Enter without text, it organizes the file automatically based on its extension.
+    *   **Cancel (Esc)**: Ignores the file and leaves it where it is.
+
+### Auto-Classification
+If no instructions are given, files are automatically moved to:
+*   `Pictures`: .jpg, .png, .webp, ...
+*   `Documents`: .pdf, .docx, .txt, ...
 *   `Videos`: .mp4, .mkv, ...
-*   `Música`: .mp3, .flac, ...
-*   `Comprimidos`: .zip, .rar, ...
-*   `Código`: .py, .js, ...
+*   `Music`: .mp3, .flac, ...
+*   `Archives`: .zip, .rar, ...
+*   `Code`: .py, .js, ...
 
-### Agente Inteligente (IA)
-Si escribes una instrucción en el diálogo (ej: "Mover a la carpeta de facturas y renombrar a Factura_Enero"), el agente:
-*   Analiza tu petición con GPT-4.
-*   Puede crear carpetas, renombrar archivos y moverlos a cualquier subdirectorio de tu usuario.
-*   Puede extraer archivos comprimidos si se lo pides.
+### Smart Agent (AI)
+If you write an instruction in the dialog (e.g., *"Move to invoices folder and rename to Invoice_January"*), the agent:
+*   Analyzes your request with a **fully configurable LLM**.
+    *   Compatible with **OpenAI**, **DeepSeek**, **Anthropic (Claude)**, **Google Gemini**, and more (via [agentify](https://github.com/fa8i/Agentify)).
+*   Can create folders, rename files, and move them to any subdirectory in your home folder.
+*   Can extract archive files if requested.
+*   Can **delete** files if you instruct it to (e.g., *"Delete this file"*).
 
-## Instalación y Auto-inicio
+## Installation and Auto-start
 
-Para que el organizador inicie con el sistema:
+To ensure the organizer starts automatically with your system:
 
-1.  El servicio `download-organizer.service` se debe copiar a `~/.config/systemd/user/`.
-2.  Habilitar con:
+1.  Copy the service file `download-organizer.service` to `~/.config/systemd/user/`.
+    *(Create the directory if it doesn't exist)*.
+
+2.  Enable and start the service:
     ```bash
     systemctl --user enable --now download-organizer
     ```
 
-## Configuración
-La configuración se encuentra en `src/download_organizer/config.py`.
+## Configuration
+
+Configuration settings can be found in `src/download_organizer/config.py`.
+
+### Customization
+You can fully customize the behavior:
+*   **Folder Names**: Modify `config.py` to change the destination folders (e.g., change "Pictures" to "Fotos" or "Assets").
+*   **Agent Prompts**: Edit `src/download_organizer/agent.py` to change the `SYSTEM_PROMPT`. You can translate it to any language or give the agent a specific personality.
+*   **UI Messages**: Open `src/download_organizer/ui/window.py` to modify the popup labels, button text, or placeholder messages to your preferred language.
+
