@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd // turbo
+.Python
+env/
+venv/
+.env
+.venv/
+env.bak/
+venv.bak/
+
+# System
+.DS_Store
+Thumbs.db
+
+# IDEs
+.idea/
+.vscode/
+
+# Project specific
+gtk_test.py
+*.log

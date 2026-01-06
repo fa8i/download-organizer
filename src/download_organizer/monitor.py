@@ -1,0 +1,142 @@
+"""Watchdog-based file monitor for the Downloads folder."""
+
+import asyncio
+import time
+from pathlib import Path
+from typing import Callable, Optional, Set, Dict
+from dataclasses import dataclass
+
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler, FileCreatedEvent
+
+from .config import DOWNLOADS_DIR
+from .categorizer import should_ignore_file
+
+
+@dataclass
+class PendingFile:
+    """A file pending processing."""
+    path: str
+    detected_at: float
+    size: int = 0
+    stable_checks: int = 0
+
+
+class DownloadEventHandler(FileSystemEventHandler):
+    """Handler for new file events in the Downloads folder."""
+    
+    def __init__(self, callback: Callable[[str], None]):
+        super().__init__()
+        self.callback = callback
+        self._pending: Dict[str, PendingFile] = {}
+        self._processed: Set[str] = set()
+    
+    def on_created(self, event: FileCreatedEvent) -> None:
+        if event.is_directory: return
+        self._add_to_pending(event.src_path)
+    
+    def on_modified(self, event) -> None:
+        if event.is_directory: return
+        if event.src_path in self._pending:
+            self._pending[event.src_path].stable_checks = 0
+
+    def on_moved(self, event) -> None:
+        if event.is_directory: return
+        # Handle rename/move: remove old path from processed, track new
+        if event.src_path in self._processed:
+            self._processed.remove(event.src_path)
+        self._add_to_pending(event.dest_path)
+
+    def on_deleted(self, event) -> None:
+        if event.is_directory: return
+        if event.src_path in self._processed:
+            self._processed.remove(event.src_path)
+            # Also remove from pending if it was there
+            self._pending.pop(event.src_path, None)
+
+    def _add_to_pending(self, path: str):
+        if should_ignore_file(path): return
+        self._pending[path] = PendingFile(path=path, detected_at=time.time())
+
+    def check_pending_files(self) -> list[str]:
+        ready_files = []
+        to_remove = []
+        
+        for path, pending in self._pending.items():
+            if path in self._processed:
+                to_remove.append(path)
+                continue
+            
+            p = Path(path)
+            if not p.exists():
+                to_remove.append(path)
+                continue
+            
+            try:
+                current_size = p.stat().st_size
+                if current_size == pending.size:
+                    pending.stable_checks += 1
+                else:
+                    pending.size = current_size
+                    pending.stable_checks = 0
+                
+                # Buffer ~0.3s (3 checks @ 0.1s)
+                if pending.stable_checks >= 3:
+                    if not should_ignore_file(path):
+                        ready_files.append(path)
+                        self._processed.add(path)
+                    to_remove.append(path)
+            except OSError:
+                to_remove.append(path)
+        
+        for p in to_remove:
+            self._pending.pop(p, None)
+            
+        return ready_files
+
+
+class DownloadMonitor:
+    def __init__(self, on_new_file: Callable[[str], None], watch_dir: Optional[Path] = None):
+        self.watch_dir = watch_dir or DOWNLOADS_DIR
+        self.on_new_file = on_new_file
+        self._observer: Optional[Observer] = None
+        self._handler: Optional[DownloadEventHandler] = None
+        self._running = False
+    
+    def start(self) -> None:
+        if self._running: return
+        self.watch_dir.mkdir(parents=True, exist_ok=True)
+        self._handler = DownloadEventHandler(self.on_new_file)
+        self._observer = Observer()
+        self._observer.schedule(self._handler, str(self.watch_dir), recursive=False)
+        self._observer.start()
+        self._running = True
+        print(f"📂 Monitoring: {self.watch_dir}")
+    
+    def stop(self) -> None:
+        if self._observer:
+            self._observer.stop()
+            self._observer.join(timeout=5)
+            self._observer = None
+        self._running = False
+        print("🛑 Monitor stopped")
+    
+    def check_and_process(self) -> None:
+        if not self._handler: return
+        for f in self._handler.check_pending_files():
+            try:
+                self.on_new_file(f)
+            except Exception as e:
+                print(f"❌ Error processing {f}: {e}")
+
+def run_monitor_loop(on_new_file: Callable[[str], None], check_interval: float = 0.1) -> None:
+    monitor = DownloadMonitor(on_new_file)
+    try:
+        monitor.start()
+        while True:
+            monitor.check_and_process()
+            time.sleep(check_interval)
+    except KeyboardInterrupt:
+        print("\n⏹️  Interrupted by user")
+    finally:
+        monitor.stop()

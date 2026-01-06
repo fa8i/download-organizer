@@ -1,0 +1,14 @@
+[Unit]
+Description=Smart Download Organizer Service
+After=graphical-session.target network.target
+
+[Service]
+ExecStart=/home/fabian/PROYECTOS/download_organizer/venv/bin/python /home/fabian/PROYECTOS/download_organizer/src/download_organizer/main.py
+Restart=always
+Environment=DISPLAY=:1
+Environment=XAUTHORITY=/run/user/1000/gdm/Xauthority
+Environment=PYTHONUNBUFFERED=1
+WorkingDirectory=/home/fabian/PROYECTOS/download_organizer
+
+[Install]
+WantedBy=default.target
