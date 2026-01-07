@@ -24,15 +24,10 @@ class DialogResponse:
         return self.result == DialogResult.TIMEOUT or \
                (self.result == DialogResult.CONFIRMED and not self.user_input)
 
-def _get_filesize_human(size_bytes: int) -> str:
-    for unit in ['B', 'KB', 'MB', 'GB']:
-        if size_bytes < 1024:
-            return f"{size_bytes:.1f} {unit}"
-        size_bytes /= 1024
-    return f"{size_bytes:.1f} TB"
+from .utils import get_filesize_human
 
 def show_download_dialog(filename: str, file_size: int, timeout: int = DIALOG_TIMEOUT) -> DialogResponse:
-    size_human = _get_filesize_human(file_size)
+    size_human = get_filesize_human(file_size)
     
     # Run UI as module: python -m download_organizer.ui.window
     cmd = [
@@ -44,21 +39,8 @@ def show_download_dialog(filename: str, file_size: int, timeout: int = DIALOG_TI
     try:
         env = os.environ.copy()
         env["PYTHONUNBUFFERED"] = "1"
-        # IMPORTANT: Add the package root to PYTHONPATH so the subprocess can find 'download_organizer'
-        # sys.path[0] usually contains the script dir, but we want the package root.
-        # process.cwd is likely the project root due to systemd WorkingDirectory, but to be safe:
-        
-        # We know main.py puts parrent of download_organizer in sys.path. 
-        # Let's add all sys.path to PYTHONPATH for the child.
         env["PYTHONPATH"] = os.pathsep.join(sys.path)
         
-        # DEBUG LOGGING
-        print(f"DEBUG: Executing UI command: {cmd}")
-        print(f"DEBUG: PYTHONPATH: {env.get('PYTHONPATH')}")
-        print(f"DEBUG: DISPLAY: {env.get('DISPLAY')}")
-        print(f"DEBUG: XAUTHORITY: {env.get('XAUTHORITY')}")
-        print(f"DEBUG: DBUS_SESSION_BUS_ADDRESS: {env.get('DBUS_SESSION_BUS_ADDRESS')}")
-
         process = subprocess.run(
             cmd,
             capture_output=True,
@@ -68,11 +50,7 @@ def show_download_dialog(filename: str, file_size: int, timeout: int = DIALOG_TI
         )
         
         output = process.stdout.strip()
-        stderr = process.stderr.strip()
-        print(f"DEBUG: UI process return code: {process.returncode}")
-        if output: print(f"DEBUG: ui.py output: {output}")
-        if stderr: print(f"DEBUG: ui.py stderr: {stderr}")
-
+        
         result_str = "timeout"
         user_input = None
         
@@ -91,9 +69,24 @@ def show_download_dialog(filename: str, file_size: int, timeout: int = DIALOG_TI
             return DialogResponse(DialogResult.TIMEOUT)
             
     except subprocess.TimeoutExpired:
-        print("DEBUG: ui.py timed out subprocess")
         return DialogResponse(DialogResult.TIMEOUT)
     except Exception as e:
         print(f"Error showing dialog: {e}")
-        # Could fallback to zenity here, but skipping for brevity as UI should work
         return DialogResponse(DialogResult.TIMEOUT)
+
+def show_system_notification(title: str, message: str, folder_path: str = None):
+    """Shows an interactive notification using our ui/notification.py script."""
+    cmd = [
+        sys.executable,
+        "-m", "download_organizer.ui.notification",
+        title, message
+    ]
+    if folder_path:
+        cmd.append(folder_path)
+    
+    try:
+        env = os.environ.copy()
+        env["PYTHONPATH"] = os.pathsep.join(sys.path)
+        subprocess.Popen(cmd, env=env) # Use Popen to not block the main process
+    except Exception as e:
+        print(f"Failed to show notification: {e}")

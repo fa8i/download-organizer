@@ -33,7 +33,7 @@ def move_file(source_path: str, destination_dir: str) -> dict:
             suffix = src.suffix
             counter = 1
             while dst_path.exists():
-                dst_path = dst_dir / f"{stem}_{counter}{suffix}"
+                dst_path = dst_dir / f"{stem} ({counter}){suffix}"
                 counter += 1
                 
         shutil.move(str(src), str(dst_path))
@@ -57,7 +57,13 @@ def rename_file(file_path: str, new_name: str) -> dict:
             
         dst = src.parent / new_name
         if dst.exists():
-            return {"success": False, "message": f"Destination already exists: {dst}"}
+             path_dst = Path(dst)
+             stem = path_dst.stem
+             suffix = path_dst.suffix
+             counter = 1
+             while dst.exists():
+                 dst = src.parent / f"{stem} ({counter}){suffix}"
+                 counter += 1
             
         src.rename(dst)
         return {"success": True, "message": f"Renamed to {dst}"}

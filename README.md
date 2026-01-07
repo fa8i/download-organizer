@@ -45,6 +45,10 @@ To ensure the organizer starts automatically with your system:
     ```bash
     systemctl --user enable --now download-organizer
     ```
+3. En caso de actualizar el código, reinicia el servicio:
+    ```bash
+    systemctl --user restart download-organizer
+    ```
 
 ## Configuration
 

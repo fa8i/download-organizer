@@ -49,6 +49,9 @@ CATEGORIES: Dict[str, List[str]] = {
 
 DIALOG_TIMEOUT = 45  # seconds before auto-classify
 
+# Icon for notifications (can be a path or a system icon name)
+APP_ICON = "folder-download" 
+
 # Patterns to ignore (incomplete downloads)
 IGNORED_PATTERNS = [
     ".part",        # Firefox partial

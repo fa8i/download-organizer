@@ -2,6 +2,7 @@
 
 import asyncio
 import time
+import logging
 from pathlib import Path
 from typing import Callable, Optional, Set, Dict
 from dataclasses import dataclass
@@ -42,10 +43,13 @@ class DownloadEventHandler(FileSystemEventHandler):
 
     def on_moved(self, event) -> None:
         if event.is_directory: return
-        # Handle rename/move: remove old path from processed, track new
+        # Handle rename/move: if old path was processed, mark new path as processed too
         if event.src_path in self._processed:
             self._processed.remove(event.src_path)
-        self._add_to_pending(event.dest_path)
+            self._processed.add(event.dest_path)
+            logging.debug(f"File moved from {event.src_path} to {event.dest_path}, keeping processed state.")
+        else:
+            self._add_to_pending(event.dest_path)
 
     def on_deleted(self, event) -> None:
         if event.is_directory: return
@@ -111,7 +115,7 @@ class DownloadMonitor:
         self._observer.schedule(self._handler, str(self.watch_dir), recursive=False)
         self._observer.start()
         self._running = True
-        print(f"📂 Monitoring: {self.watch_dir}")
+        logging.info(f"Monitoring: {self.watch_dir}")
     
     def stop(self) -> None:
         if self._observer:
@@ -119,24 +123,44 @@ class DownloadMonitor:
             self._observer.join(timeout=5)
             self._observer = None
         self._running = False
-        print("🛑 Monitor stopped")
+        logging.info("Monitor stopped")
     
-    def check_and_process(self) -> None:
-        if not self._handler: return
-        for f in self._handler.check_pending_files():
+    def check_and_process(self) -> int:
+        """Checks for pending files and processes them. Returns number of files pending/processed."""
+        if not self._handler: return 0
+        
+        pending_files = self._handler.check_pending_files()
+        count = len(pending_files)
+        
+        # Also count if we have any pending in the dict, to keep fast loop while stabilizing
+        if self._handler._pending:
+            count += len(self._handler._pending)
+            
+        for f in pending_files:
             try:
                 self.on_new_file(f)
             except Exception as e:
-                print(f"❌ Error processing {f}: {e}")
+                logging.error(f"Error processing {f}: {e}")
+                
+        return count
 
-def run_monitor_loop(on_new_file: Callable[[str], None], check_interval: float = 0.1) -> None:
+def run_monitor_loop(on_new_file: Callable[[str], None]) -> None:
     monitor = DownloadMonitor(on_new_file)
     try:
         monitor.start()
         while True:
-            monitor.check_and_process()
-            time.sleep(check_interval)
+            # Check for files
+            processed_count = monitor.check_and_process()
+            
+            # Dynamic sleep to save CPU
+            if processed_count > 0:
+                # If we processed something or are tracking pending files, check fast
+                time.sleep(0.1)
+            else:
+                 # If idle, sleep longer
+                time.sleep(1.0)
+                
     except KeyboardInterrupt:
-        print("\n⏹️  Interrupted by user")
+        logging.info("\nInterrupted by user")
     finally:
         monitor.stop()
