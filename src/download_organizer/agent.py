@@ -18,7 +18,7 @@ REGLAS:
 7.  Si el usuario pide renombrar un archivo, usa la herramienta rename_file y confirma la acción.
 8.  Si el usuario pide crear un directorio, usa la herramienta create_directory y confirma la acción.
 9.  NUNCA respondas con preguntas. Usa siempre una respuesta corta y directa.
-10. No utilices emojis y responde únicamente: "Archivo guardado en [ruta]".
+10. No utilices emojis y responde únicamente: "Archivo guardado/extraído en [ruta]" o "Archivo eliminado".
 """
 
 def create_organizer_agent(conversation_id: str = "organizer_session"):
