@@ -22,3 +22,6 @@ Thumbs.db
 # Project specific
 gtk_test.py
 *.log
+
+# Generated files
+download-organizer.service

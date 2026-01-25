@@ -1,0 +1,14 @@
+[Unit]
+Description=Smart Download Organizer Service
+After=graphical-session.target network.target
+
+[Service]
+ExecStart={{PYTHON_EXEC}} {{MAIN_SCRIPT}}
+Restart=always
+Environment=DISPLAY=:1
+Environment=XAUTHORITY=/run/user/{{USER_UID}}/gdm/Xauthority
+Environment=PYTHONUNBUFFERED=1
+WorkingDirectory={{WORKING_DIR}}
+
+[Install]
+WantedBy=default.target
