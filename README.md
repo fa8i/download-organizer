@@ -38,14 +38,17 @@ If you write an instruction in the dialog (e.g., *"Move to invoices folder and r
 
 To ensure the organizer starts automatically with your system:
 
-1.  Copy the service file `download-organizer.service` to `~/.config/systemd/user/`.
-    *(Create the directory if it doesn't exist)*.
-
-2.  Enable and start the service:
+1.  Run the installation script to generate the service file and start the organizer:
     ```bash
-    systemctl --user enable --now download-organizer
+    ./install.sh
     ```
-3. En caso de actualizar el código, reinicia el servicio:
+2.  The script will:
+    *   Detect your project path and python environment.
+    *   Generate `download-organizer.service` with the correct paths.
+    *   Link it to your systemd user directory.
+    *   Enable and start the service automatically.
+
+3.  If you update the code, simply restart the service:
     ```bash
     systemctl --user restart download-organizer
     ```
