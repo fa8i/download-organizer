@@ -61,7 +61,7 @@ def process_new_file(file_path: str):
         # Auto-organize
         dest_dir, category = get_default_destination(file_path)
         logger.info(f"Auto-organizing to: {category}")
-        move_file(file_path, dest_dir)
+        move_file(source_path=str(file_path), destination_dir=str(dest_dir))
         show_system_notification("Archivo Organizado", f"Archivo guardado en {dest_dir}", str(dest_dir))
         
     elif response.result == DialogResult.CONFIRMED and response.user_input:
