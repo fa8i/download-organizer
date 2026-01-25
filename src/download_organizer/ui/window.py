@@ -11,7 +11,7 @@ except ImportError:
     try:
         import gi
     except ImportError:
-        print("Error: PyGObject (gi) not found. Please install: sudo apt install python3-gi")
+        print("Error: PyGObject (gi) not found. Please install: sudo apt install python3-gi", file=sys.stderr)
         sys.exit(1)
 
 gi.require_version("Gtk", "4.0")
@@ -157,14 +157,14 @@ class DownloadDialog(Gtk.ApplicationWindow):
         self.app.quit()
 
     def on_cancel(self, widget):
-        print(f"DEBUG: on_cancel triggered by {widget}")
+        print(f"DEBUG: on_cancel triggered by {widget}", file=sys.stderr)
         self.is_cancelled = True
         self.app.quit()
         
     def on_key_pressed(self, controller, keyval, keycode, state):
         if keyval == Gdk.KEY_Escape:
             if time.time() - self.start_time < 0.3:
-                print("DEBUG: Ignored early Escape key")
+                print("DEBUG: Ignored early Escape key", file=sys.stderr)
                 return True
             self.on_cancel("EscapeKey")
             return True
@@ -191,7 +191,7 @@ class OrganizerApp(Gtk.Application):
                 elif self.win.user_input is not None: return "confirmed", self.win.user_input
             return "timeout", None
         except Exception as e:
-            print(f"Error in dialog: {e}")
+            print(f"Error in dialog: {e}", file=sys.stderr)
             return "error", None
 
 def show_modern_dialog(filename, size_human, timeout=30):

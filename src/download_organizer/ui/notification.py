@@ -48,7 +48,7 @@ def on_notification_closed(n):
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        print("Usage: python notification.py <title> <message> [folder_path] [icon]")
+        print("Usage: python notification.py <title> <message> [folder_path] [icon]", file=sys.stderr)
         sys.exit(1)
     
     title = sys.argv[1]
@@ -86,5 +86,5 @@ if __name__ == "__main__":
         GLib.timeout_add_seconds(60, loop.quit)
         loop.run()
     except Exception as e:
-        print(f"Error showing notification: {e}")
+        print(f"Error showing notification: {e}", file=sys.stderr)
         sys.exit(1)

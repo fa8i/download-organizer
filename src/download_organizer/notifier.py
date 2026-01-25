@@ -9,6 +9,9 @@ from typing import Optional, Tuple
 
 from .config import DATA_DIR, DIALOG_TIMEOUT
 
+import logging
+logger = logging.getLogger(__name__)
+
 class DialogResult(Enum):
     CONFIRMED = auto()
     CANCELLED = auto()
@@ -71,7 +74,7 @@ def show_download_dialog(filename: str, file_size: int, timeout: int = DIALOG_TI
     except subprocess.TimeoutExpired:
         return DialogResponse(DialogResult.TIMEOUT)
     except Exception as e:
-        print(f"Error showing dialog: {e}")
+        logger.error(f"Error showing dialog: {e}")
         return DialogResponse(DialogResult.TIMEOUT)
 
 def show_system_notification(title: str, message: str, folder_path: str = None):
@@ -89,4 +92,4 @@ def show_system_notification(title: str, message: str, folder_path: str = None):
         env["PYTHONPATH"] = os.pathsep.join(sys.path)
         subprocess.Popen(cmd, env=env) # Use Popen to not block the main process
     except Exception as e:
-        print(f"Failed to show notification: {e}")
+        logger.error(f"Failed to show notification: {e}")
