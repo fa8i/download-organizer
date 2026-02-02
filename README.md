@@ -1,6 +1,6 @@
-# 📂 Smart Download Organizer
-
 <div align="center">
+
+# 📂 Smart Download Organizer
 
 ![Python Version](https://img.shields.io/badge/python-3.10%2B-blue?style=for-the-badge&logo=python)
 ![Platform](https://img.shields.io/badge/platform-linux-black?style=for-the-badge&logo=linux)
