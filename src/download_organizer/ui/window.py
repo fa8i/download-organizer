@@ -41,6 +41,7 @@ class DownloadDialog(Gtk.ApplicationWindow):
         
         self.set_resizable(False)
         self.set_decorated(False)
+        self.add_css_class("transparent-window")
         
         self.timeout_id = GLib.timeout_add(timeout_sec * 1000, self.on_timeout)
         self.time_left = timeout_sec

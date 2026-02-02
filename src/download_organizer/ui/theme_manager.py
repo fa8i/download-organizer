@@ -143,6 +143,12 @@ class ThemeManager:
         # NOTE: We scope everything to .main-window or specific classes to avoid leaking
         # into Preference Window UI which shares the same process/screen.
         css = f"""
+        .transparent-window {{ 
+            background-color: rgba(0,0,0,0); 
+            box-shadow: none; 
+            border: none; 
+        }}
+        
         .main-window {{
             background-color: {bg};
             color: {file_c};
