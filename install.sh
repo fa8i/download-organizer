@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Detect current directory
 PROJECT_DIR=$(pwd)
 # Detect virtual environment
 VENV_DIR=""
@@ -26,7 +25,6 @@ echo "  Python Exec: $PYTHON_EXEC"
 echo "  Main Script: $MAIN_SCRIPT"
 echo "  User UID:    $USER_UID"
 
-# Generate service file
 SERVICE_FILE="download-organizer.service"
 TEMPLATE_FILE="download-organizer.service.template"
 
@@ -37,7 +35,6 @@ fi
 
 cp "$TEMPLATE_FILE" "$SERVICE_FILE"
 
-# Replace placeholders
 sed -i "s|{{PYTHON_EXEC}}|$PYTHON_EXEC|g" "$SERVICE_FILE"
 sed -i "s|{{MAIN_SCRIPT}}|$MAIN_SCRIPT|g" "$SERVICE_FILE"
 sed -i "s|{{WORKING_DIR}}|$PROJECT_DIR|g" "$SERVICE_FILE"
@@ -45,15 +42,12 @@ sed -i "s|{{USER_UID}}|$USER_UID|g" "$SERVICE_FILE"
 
 echo "Generated $SERVICE_FILE with absolute paths."
 
-# Install service
 SYSTEMD_DIR="$HOME/.config/systemd/user"
 mkdir -p "$SYSTEMD_DIR"
 
-# Link service file to systemd user directory
 ln -sf "$PROJECT_DIR/$SERVICE_FILE" "$SYSTEMD_DIR/$SERVICE_FILE"
 echo "Linked service to $SYSTEMD_DIR/$SERVICE_FILE"
 
-# Reload systemd
 systemctl --user daemon-reload
 systemctl --user enable download-organizer
 systemctl --user restart download-organizer

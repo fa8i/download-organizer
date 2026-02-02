@@ -39,14 +39,13 @@ def process_new_file(file_path: str):
     filename = Path(file_path).name
     logger.info(f"Detectado: {filename}")
     
-    # 1. Get file size
+    # Get file size
     try:
         size = Path(file_path).stat().st_size
     except FileNotFoundError:
         logger.warning(f"File vanished: {file_path}")
         return
 
-    # 2. Show UI
     logger.info("Waiting for user...")
     response = show_download_dialog(filename, size)
     
@@ -56,16 +55,13 @@ def process_new_file(file_path: str):
         logger.info(f"Skipped: {filename} (Users cancelled)")
         return
 
-    # 3. Action
     if response.should_auto_classify:
-        # Auto-organize
         dest_dir, category = get_default_destination(file_path)
         logger.info(f"Auto-organizing to: {category}")
         move_file(source_path=str(file_path), destination_dir=str(dest_dir))
         show_system_notification("Archivo Organizado", f"Archivo guardado en {dest_dir}", str(dest_dir))
         
     elif response.result == DialogResult.CONFIRMED and response.user_input:
-        # Agent Instruction
         logger.info(f"Agent trigger: '{response.user_input}'")
         agent = create_organizer_agent()
         
@@ -81,7 +77,6 @@ def process_new_file(file_path: str):
             
             logger.info(f"Agent: {out_text}")
             
-            # Use utility to extract path
             dest_folder = extract_path_from_response(out_text)
             
             show_system_notification("Agente IA", out_text, dest_folder)
@@ -95,10 +90,8 @@ def main():
     logger.info(f"Watching: {DOWNLOADS_DIR}")
     logger.info("==================================================")
     
-    # Create data dir
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     
-    # Run loop
     run_monitor_loop(process_new_file)
 
 if __name__ == "__main__":

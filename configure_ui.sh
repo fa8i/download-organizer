@@ -1,9 +1,7 @@
 #!/bin/bash
 
-# Detect current directory
 PROJECT_DIR=$(dirname "$(readlink -f "$0")")
 
-# Detect virtual environment
 VENV_DIR=""
 for d in "venv" ".venv"; do
     if [ -d "$PROJECT_DIR/$d" ]; then

@@ -154,10 +154,8 @@ def run_monitor_loop(on_new_file: Callable[[str], None]) -> None:
             
             # Dynamic sleep to save CPU
             if processed_count > 0:
-                # If we processed something or are tracking pending files, check fast
                 time.sleep(0.1)
             else:
-                 # If idle, sleep longer
                 time.sleep(1.0)
                 
     except KeyboardInterrupt:

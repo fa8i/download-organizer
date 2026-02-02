@@ -47,7 +47,6 @@ def create_organizer_agent(conversation_id: str = "organizer_session"):
         delete_file
     ]
     
-    # Configuration
     config = AgentConfig(
         name="OrganizerAgent",
         provider=LLM_PROVIDER,
@@ -56,7 +55,6 @@ def create_organizer_agent(conversation_id: str = "organizer_session"):
         temperature=0.0,
     )
     
-    # Memory (Short term is fine for this task)
     memory_service = MemoryService(store=InMemoryStore())
     address = MemoryAddress(conversation_id=conversation_id, agent_id="organizer")
     

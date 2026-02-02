@@ -17,7 +17,6 @@ except ImportError:
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk, Gdk, GLib, Pango
 
-# Relative import for config and theme
 from ..config import DIALOG_TIMEOUT
 from .theme_manager import ThemeManager
 from .components import DownloadCard
@@ -31,12 +30,10 @@ class DownloadDialog(Gtk.ApplicationWindow):
         self.is_timeout = False
         self.is_cancelled = False
         
-        # Initialize Theme Manager
         self.theme_manager = ThemeManager()
         
         self.set_title("Download Organizer")
         
-        # Geometry from config
         geo = self.theme_manager.config.geometry
         width = geo.get("width", 400)
         height = geo.get("height", 160)

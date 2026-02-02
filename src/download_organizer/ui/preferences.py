@@ -151,7 +151,6 @@ class PreferencesWindow(Gtk.ApplicationWindow):
     def _build_general_page(self):
         page = self._build_page_box()
         
-        # Presets
         page.append(self._build_section_header("Quick Presets"))
         presets_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
         presets_box.set_homogeneous(True)
@@ -162,16 +161,11 @@ class PreferencesWindow(Gtk.ApplicationWindow):
             presets_box.append(btn)
         page.append(presets_box)
         
-        # Dimensions
         page.append(self._build_section_header("Window Dimensions"))
         
-        # Width
         page.append(self._build_spin_row("Width (px)", "geometry", "width", 300, 800, 10))
-        # Height
         page.append(self._build_spin_row("Height (px)", "geometry", "height", 100, 600, 10))
-        # Radius
         page.append(self._build_spin_row("Corner Radius (px)", "appearance", "border_radius", 0, 32, 1))
-        # Font Scale
         page.append(self._build_spin_row("Font Scale (em)", "appearance", "font_size_scale", 0.8, 2.0, 0.1))
 
         return page
@@ -179,32 +173,26 @@ class PreferencesWindow(Gtk.ApplicationWindow):
     def _build_colors_page(self):
         page = self._build_page_box()
         
-        # Base
         page.append(self._build_section_header("Base Colors"))
         page.append(self._build_color_row("Background (Window)", "bg_color"))
         page.append(self._build_color_row("Border", "border_color"))
         
-        # Text (Granular)
         page.append(self._build_section_header("Text Colors"))
         page.append(self._build_color_row("Title Color", "title_color"))
         page.append(self._build_color_row("Filename Color", "file_color"))
         
-        # Inputs
         page.append(self._build_section_header("Input Field"))
         page.append(self._build_color_row("Background", "entry_bg"))
         page.append(self._build_color_row("Text Color", "entry_text_color"))
         
-        # Buttons
         page.append(self._build_section_header("Primary Buttons"))
         page.append(self._build_color_row("Background", "button_bg"))
         page.append(self._build_color_row("Text Color", "button_text_color"))
         
-        # Cancel
         page.append(self._build_section_header("Cancel Button"))
         page.append(self._build_color_row("Background", "cancel_bg"))
         page.append(self._build_color_row("Text Color", "cancel_fg"))
 
-        # Accent
         page.append(self._build_section_header("Accent"))
         page.append(self._build_color_row("Accent Color", "accent_color"))
         page.append(self._build_color_row("Accent Hover", "accent_hover"))

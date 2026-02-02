@@ -34,15 +34,11 @@ def should_ignore_file(file_path: str) -> bool:
     path = Path(file_path)
     name = path.name.lower()
     
-    # Check ignored patterns
     for pattern in IGNORED_PATTERNS:
         if name.endswith(pattern):
             return True
     
-    # Ignore hidden files
     if name.startswith('.'):
         return True
-    
-    # Removed size check as requested (fixed issue with small files)
     
     return False

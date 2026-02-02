@@ -26,7 +26,6 @@ def move_file(source_path: str, destination_dir: str) -> dict:
             # Auto-create destination if it doesn't exist (agent convenience)
             dst_dir.mkdir(parents=True, exist_ok=True)
             
-        # Handle collision
         dst_path = dst_dir / src.name
         if dst_path.exists():
             stem = src.stem
