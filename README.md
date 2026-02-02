@@ -58,8 +58,23 @@ To ensure the organizer starts automatically with your system:
 Configuration settings can be found in `src/download_organizer/config.py`.
 
 ### Customization
-You can fully customize the behavior:
-*   **Folder Names**: Modify `config.py` to change the destination folders (e.g., change "Pictures" to "Fotos" or "Assets").
-*   **Agent Prompts**: Edit `src/download_organizer/agent.py` to change the `SYSTEM_PROMPT`. You can translate it to any language or give the agent a specific personality.
-*   **UI Messages**: Open `src/download_organizer/ui/window.py` to modify the popup labels, button text, or placeholder messages to your preferred language.
+You can now fully customize the popup's appearance and behavior using the built-in Preferences Window.
+
+![Preferences Window](assets/preferences_demo.png)
+
+To open the configuration utility:
+```bash
+./configure_ui.sh
+```
+
+**What you can customize:**
+*   **Window Geometry**: Adjust the width and height of the popup.
+*   **Colors**: Fine-tune specific colors for the title, filename, buttons, and background. Supports generic presets (Dark/Light) and granular control.
+*   **Text & Labels**: Rename any part of the UI (e.g., "Nueva descarga" -> "File Detected") to suit your language or preference.
+*   **Previews**: See your changes in real-time before saving.
+
+**Manual Configuration (Advanced):**
+*   **Folder Names**: Modify `config.py` to change destination folders.
+*   **Agent Prompts**: Edit `src/download_organizer/agent.py` to change the `SYSTEM_PROMPT` for the AI.
+*   **Language**: While the UI strings are now editable in the Preferences, the `config.py` file remains the source of truth for core behavior defaults.
 
