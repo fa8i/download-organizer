@@ -24,9 +24,8 @@ EXTRACTABLE_EXTENSIONS = {
 
 from agentify.core.tool import tool
 
-@tool
-def can_extract(file_path: str) -> dict:
-    """Check if a file can be extracted and what type it is."""
+def _can_extract(file_path: str) -> dict:
+    """Internal helper to check if a file can be extracted."""
     path = Path(file_path)
     suffix = path.suffix.lower()
     
@@ -43,8 +42,10 @@ def can_extract(file_path: str) -> dict:
                 return {"extractable": False, "reason": "unrar not installed"}
         elif archive_type == "7z":
             has_tool = shutil.which("7z") is not None
-            if not has_tool:
-                return {"extractable": False, "reason": "7z not installed"}
+        
+        # Fixing logic error in original code: if 7z not installed, it should return False
+        if archive_type == "7z" and not has_tool:
+             return {"extractable": False, "reason": "7z not installed"}
         
         return {
             "extractable": True,
@@ -53,6 +54,11 @@ def can_extract(file_path: str) -> dict:
         }
     
     return {"extractable": False, "reason": f"Unknown archive format: {suffix}"}
+
+@tool
+def can_extract(file_path: str) -> dict:
+    """Check if a file can be extracted and what type it is."""
+    return _can_extract(file_path)
 
 @tool
 def extract_archive(archive_path: str, destination_dir: str, delete_original: bool = False) -> dict:
@@ -64,7 +70,8 @@ def extract_archive(archive_path: str, destination_dir: str, delete_original: bo
         if not archive.exists():
             return {"success": False, "message": f"Archive not found: {archive_path}"}
         
-        check = can_extract(archive_path)
+        # Use internal helper to avoid @tool wrapper string return
+        check = _can_extract(archive_path)
         if not check.get("extractable"):
             return {"success": False, "message": check.get("reason", "Cannot extract")}
         
