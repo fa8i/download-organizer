@@ -4,9 +4,11 @@ import json
 import logging
 from dataclasses import dataclass, asdict, field
 from pathlib import Path
+from pathlib import Path
 from typing import Dict, Any, Optional
 
 from ..config import DATA_DIR
+ASSETS_DIR = Path(__file__).parent / "assets"
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +21,7 @@ DEFAULT_CONFIG = {
     "appearance": {
         "font_family": "Sans",
         "bg_color": "#131116",
+        "bg_opacity": 0.90,           # New: Glass Opacity
         
         "title_color": "#d0a0d4",
         "file_color": "#ffffff",
@@ -113,12 +116,24 @@ class ThemeManager:
         except Exception as e:
             logger.error(f"Failed to save theme config: {e}")
 
+    def _hex_to_rgba(self, hex_color: str, alpha: float) -> str:
+        """Converts hex color (#RRGGBB) to rgba(r, g, b, a)."""
+        hex_color = hex_color.lstrip('#')
+        if len(hex_color) == 6:
+            r = int(hex_color[0:2], 16)
+            g = int(hex_color[2:4], 16)
+            b = int(hex_color[4:6], 16)
+            return f"rgba({r}, {g}, {b}, {alpha})"
+        return hex_color
+
     def generate_css(self) -> str:
         """Generates GTK CSS string based on current configuration."""
         a = self.config.appearance
         
         # Helper to safely get values or defaults
-        bg = a.get("bg_color", "#171421")
+        bg_hex = a.get("bg_color", "#131116")
+        opacity = a.get("bg_opacity", 0.90)
+        bg = self._hex_to_rgba(bg_hex, opacity)
         
         title_c = a.get("title_color", "#6233a3")
         file_c = a.get("file_color", "#e0d0f5")
@@ -131,7 +146,8 @@ class ThemeManager:
         cancel_bg = a.get("cancel_bg", "#2a2135")
         cancel_fg = a.get("cancel_fg", "#e0d0f5")
         
-        entry_bg = a.get("entry_bg", "#1a1223")
+        entry_bg_hex = a.get("entry_bg", "#1a1223")
+        entry_bg = self._hex_to_rgba(entry_bg_hex, opacity)
         
         accent = a.get("accent_color", "#6233a3")
         accent_hover = a.get("accent_hover", "#7b42cc")
@@ -143,18 +159,35 @@ class ThemeManager:
         # NOTE: We scope everything to .main-window or specific classes to avoid leaking
         # into Preference Window UI which shares the same process/screen.
         css = f"""
-        .transparent-window {{ 
-            background-color: rgba(0,0,0,0); 
-            box-shadow: none; 
-            border: none; 
+        /* Clear window background and shadows for true transparency */
+        window.transparent-window {{
+            background-color: transparent;
+            box-shadow: none;
+            border: none;
         }}
         
+        /* Ensure server-side decorations don't interfere */
+        window.transparent-window > decoration {{
+            box-shadow: none;
+            background: none;
+        }}
+
         .main-window {{
             background-color: {bg};
+            /* Subtle reflective gradient for high-quality 'glossy' feel */
+            background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 50%, rgba(255, 255, 255, 0) 100%);
+            
             color: {file_c};
             border-radius: {radius};
-            border: 1px solid {border};
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+            
+            /* High-quality glass border (simulating edge reflection) */
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            
+            /* Deep, soft shadow for elevation */
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            
             padding: 20px;
             font-size: {font_scale};
             font-family: "{font_family}";
@@ -169,43 +202,55 @@ class ThemeManager:
         .main-window entry {{
             background-color: {entry_bg}; 
             color: {entry_text_c}; 
-            border: 1px solid {border};
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 6px; 
             padding: 8px 12px; margin-bottom: 15px;
             caret-color: {accent}; 
             transition: all 200ms ease;
+            background-image: none; /* Crucial for transparency */
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
         }}
-        .main-window entry:focus {{ border-color: {accent}; background-color: shade({entry_bg}, 1.1); }}
+        .main-window entry:focus {{ 
+            border-color: {accent}; 
+            background-color: shade({entry_bg}, 1.1); 
+            box-shadow: 0 0 0 2px alpha({accent}, 0.3); 
+        }}
         .main-window entry placeholder {{ color: alpha({entry_text_c}, 0.5); }}
         
         .main-window button {{
             background-color: {btn_bg}; 
             color: {btn_text_c}; 
-            border: 1px solid {border};
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 6px; 
             padding: 6px 14px; 
             font-weight: 600;
             transition: all 200ms ease; 
             min-height: 28px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }}
-        .main-window button:hover {{ background-color: {border}; border-color: shade({border}, 1.1); color: {btn_text_c}; }}
+        .main-window button:hover {{ 
+            background-color: mix({btn_bg}, {file_c}, 0.9); 
+            border-color: {file_c};
+            color: {btn_text_c}; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }}
         
         .main-window button.suggested-action {{ 
             background-color: {btn_bg}; 
             color: {btn_text_c}; 
-            border-color: {btn_bg}; 
+            border-color: rgba(255, 255, 255, 0.1); 
         }}
         .main-window button.suggested-action:hover {{ 
             background-color: {accent_hover}; 
             border-color: {accent_hover}; 
-            box-shadow: 0 2px 8px alpha({accent}, 0.4); 
+            box-shadow: 0 4px 12px alpha({accent}, 0.4); 
             color: {btn_text_c};
         }}
-
+        
         .main-window button.cancel-action {{
             background-color: {cancel_bg};
             color: {cancel_fg};
-            border-color: {border};
+            border-color: rgba(255, 255, 255, 0.05);
         }}
         .main-window button.cancel-action:hover {{
             background-color: shade({cancel_bg}, 1.1);

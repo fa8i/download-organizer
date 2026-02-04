@@ -175,6 +175,8 @@ class PreferencesWindow(Gtk.ApplicationWindow):
         
         page.append(self._build_section_header("Base Colors"))
         page.append(self._build_color_row("Background (Window)", "bg_color"))
+        # Range 0.8 to 1.0 mapped to 0-100% for user
+        page.append(self._build_opacity_row())
         page.append(self._build_color_row("Border", "border_color"))
         
         page.append(self._build_section_header("Text Colors"))
@@ -244,6 +246,53 @@ class PreferencesWindow(Gtk.ApplicationWindow):
         
         return row
 
+    def _build_scale_row(self, label_text, section, key, lower, upper, step):
+        row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        lbl = Gtk.Label(label=label_text, xalign=0)
+        lbl.set_hexpand(True)
+        row.append(lbl)
+        
+        current_val = float(getattr(self.config, section).get(key, upper))
+        adj = Gtk.Adjustment(value=current_val, lower=lower, upper=upper, step_increment=step, page_increment=step*2)
+        scale = Gtk.Scale(orientation=Gtk.Orientation.HORIZONTAL, adjustment=adj)
+        scale.set_digits(2)
+        scale.set_size_request(150, -1)
+        scale.set_draw_value(True)
+        scale.connect("value-changed", lambda s: self._on_scale_change(s, section, key))
+        row.append(scale)
+        
+        # Register for sync
+        self.widgets[f"{section}.{key}"] = scale
+        
+        return row
+
+    def _build_opacity_row(self):
+        """Builds specialized slider for Opacity (User: 0-100%, Config: 0.8-1.0)."""
+        row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        lbl = Gtk.Label(label="Glass Opacity (%)", xalign=0)
+        lbl.set_hexpand(True)
+        row.append(lbl)
+        
+        # Calculate initial UI value from config
+        stored_val = float(self.config.appearance.get("bg_opacity", 0.9))
+        # Map 0.8..1.0 -> 0..100
+        # (val - 0.8) / 0.2 * 100
+        ui_val = (stored_val - 0.8) / 0.2 * 100
+        ui_val = max(0, min(100, ui_val))
+        
+        adj = Gtk.Adjustment(value=ui_val, lower=0, upper=100, step_increment=1, page_increment=10)
+        scale = Gtk.Scale(orientation=Gtk.Orientation.HORIZONTAL, adjustment=adj)
+        scale.set_digits(0) # Percentage is integer-ish
+        scale.set_size_request(150, -1)
+        scale.set_draw_value(True)
+        scale.connect("value-changed", self._on_opacity_change)
+        row.append(scale)
+        
+        # Register for sync
+        self.widgets["appearance.bg_opacity"] = scale
+        
+        return row
+
     def _build_spin_row(self, label_text, section, key, lower, upper, step):
         row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
         lbl = Gtk.Label(label=label_text, xalign=0)
@@ -278,6 +327,11 @@ class PreferencesWindow(Gtk.ApplicationWindow):
         return box
 
     # --- HANDLERS ---
+    
+    def _on_scale_change(self, scale, section, key):
+        val = scale.get_value()
+        getattr(self.config, section)[key] = val
+        self._apply_css()
 
     def _on_spin_change(self, spin, section, key):
         val = spin.get_value()
@@ -290,6 +344,17 @@ class PreferencesWindow(Gtk.ApplicationWindow):
         if section == "geometry":
              self._update_preview_geometry()
              
+        self._apply_css()
+
+    def _on_opacity_change(self, scale):
+        """User sees 0-100, we store 0.8-1.0."""
+        ui_val = scale.get_value() # 0-100
+        # Map 0..100 -> 0.8..1.0
+        final_val = 0.8 + (ui_val / 100.0) * 0.2
+        # Clamp just in case
+        final_val = max(0.8, min(1.0, final_val))
+        
+        self.config.appearance["bg_opacity"] = final_val
         self._apply_css()
 
     def _on_color_change(self, btn, key):
@@ -331,13 +396,21 @@ class PreferencesWindow(Gtk.ApplicationWindow):
                 continue
                 
             # Update Widget
-            if isinstance(widget, Gtk.ColorButton):
+            if name == "bg_opacity" and section == "appearance" and isinstance(widget, Gtk.Scale):
+                # Reverse Map: 0.8..1.0 -> 0..100
+                stored = float(val)
+                ui_val = (stored - 0.8) / 0.2 * 100
+                ui_val = max(0, min(100, ui_val))
+                widget.set_value(ui_val)
+            elif isinstance(widget, Gtk.ColorButton):
                 rgba = Gdk.RGBA()
                 try:
                     rgba.parse(val or "#000000")
                     widget.props.rgba = rgba
                 except: pass
             elif isinstance(widget, Gtk.SpinButton):
+                widget.set_value(float(val))
+            elif isinstance(widget, Gtk.Scale):
                 widget.set_value(float(val))
             elif isinstance(widget, Gtk.Entry):
                 widget.set_text(str(val))
