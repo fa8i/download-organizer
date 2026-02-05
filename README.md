@@ -4,7 +4,6 @@
 
 ![Python Version](https://img.shields.io/badge/python-3.10%2B-blue?style=for-the-badge&logo=python)
 ![Platform](https://img.shields.io/badge/platform-linux-black?style=for-the-badge&logo=linux)
-![Memory Usage](https://img.shields.io/badge/memory-<50MB-green?style=for-the-badge&logo=ram)
 ![License](https://img.shields.io/badge/license-MIT-purple?style=for-the-badge)
 
 **AI-powered assistant that keeps your `Downloads` folder organized.**  
@@ -30,7 +29,7 @@ Powered by [**Agentify**](https://github.com/fa8i/Agentify).
     *   Compatible with **OpenAI**, **DeepSeek**, **Anthropic (Claude)**, **Google Gemini**, and more (via [Agentify](https://github.com/fa8i/Agentify)).
     *   Can create folders, rename files, and move them to any subdirectory in your home folder.
     *   Can extract archive files if requested.
-    *   Can **delete** files if you instruct it to (e.g., *"Delete this file"*).
+    *   Can delete files if you instruct it to (e.g., *"Delete this file"*).
 *   **📂 Auto-Sorting**: Automatically categorizes files (Images, Docs, Videos) if no instruction is provided.
 *   **🎨 Customizable UI**: Dark/Light modes, custom colors, and adjustable size.
 
