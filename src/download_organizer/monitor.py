@@ -1,6 +1,5 @@
 """Watchdog-based file monitor for the Downloads folder."""
 
-import asyncio
 import time
 import logging
 from pathlib import Path

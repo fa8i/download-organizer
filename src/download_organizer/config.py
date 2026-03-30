@@ -4,10 +4,13 @@ from pathlib import Path
 from typing import Dict, List
 import subprocess
 import os
+import logging
 
 # =============================================================================
 # PATHS
 # =============================================================================
+
+logger = logging.getLogger(__name__)
 
 def get_downloads_dir() -> Path:
     """Attempts to find the user's Downloads directory across different languages."""
@@ -90,14 +93,11 @@ IGNORED_PATTERNS = [
     "~",            # Backup files
 ]
 
-# =============================================================================
-# LLM CONFIGURATION
-# =============================================================================
-
-LLM_PROVIDER = os.environ.get("LLM_PROVIDER")
-LLM_MODEL = os.environ.get("LLM_MODEL")
-
-if not LLM_PROVIDER or not LLM_MODEL:
-    # We don't raise an error here to allow other tools (like configure_ui) 
-    # to run without LLM env vars, but the agent won't work without them.
-    pass
+try:
+    LLM_PROVIDER = os.environ.get("LLM_PROVIDER")
+    LLM_MODEL = os.environ.get("LLM_MODEL")
+except Exception as e:
+    # Use logger to track errors
+    logger.error(f"Failed to extract LLM configuration from environment: {e}")
+    LLM_PROVIDER = None
+    LLM_MODEL = None
