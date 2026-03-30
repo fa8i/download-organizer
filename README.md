@@ -71,14 +71,13 @@ Launch the configuration tool:
 ![Preferences Window](assets/preferences_demo.png)
 
 ### Advanced Config
-All core settings are managed via environment variables in a `.env` file. 
 All core settings, including LLM configuration, are managed via environment variables in a `.env` file. 
 
 1.  **Copy the template**:
     ```bash
     cp .env.example .env
     ```
-2.  **Configure your LLM**:
-    Edit `.env` to set your `LLM_PROVIDER`, `LLM_MODEL`, and the corresponding API key. 
+2.  **Configure your Agent**:
+    Edit `.env` to set your `LLM_PROVIDER` (e.g., `openai`, `anthropic`, `gemini`), `LLM_MODEL` (e.g., `gpt-4o`, `claude-3-5-sonnet-20240620`), and the corresponding API key. 
 
-Check `src/download_organizer/config.py` for other internal paths, and `src/download_organizer/prompts.py` to customize the agent's behavior.
+Check `src/download_organizer/config.py` for folder paths and categories, and `src/download_organizer/prompts.py` to customize the agent's behavior and language.
