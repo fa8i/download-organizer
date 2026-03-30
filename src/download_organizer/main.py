@@ -7,16 +7,16 @@ import logging
 import signal
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 # Configure path so we can run as a module
 PKG_DIR = Path(__file__).parent.parent
 if str(PKG_DIR) not in sys.path:
     sys.path.insert(0, str(PKG_DIR))
 
-# LOAD ENVIRONMENT VARIABLES (API KEY)
-from dotenv import load_dotenv
+# LOAD ENVIRONMENT VARIABLES (API KEY, LLM CONFIG)
 env_path = Path(__file__).parent.parent.parent / ".env"
 load_dotenv(env_path)
-
 
 from download_organizer.monitor import run_monitor_loop
 from download_organizer.notifier import show_download_dialog, DialogResult, show_system_notification
@@ -28,7 +28,7 @@ from download_organizer.utils import extract_path_from_response
 
 # Setup logging
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format='%(asctime)s %(levelname)s: %(message)s',
     datefmt='%H:%M:%S'
 )

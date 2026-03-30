@@ -2,13 +2,41 @@
 
 from pathlib import Path
 from typing import Dict, List
+import subprocess
+import os
 
 # =============================================================================
 # PATHS
 # =============================================================================
 
+def get_downloads_dir() -> Path:
+    """Attempts to find the user's Downloads directory across different languages."""
+    # 1. Try xdg-user-dir (standard on most Linux distros)
+    try:
+        result = subprocess.run(['xdg-user-dir', 'DOWNLOAD'], capture_output=True, text=True, check=True)
+        path = Path(result.stdout.strip())
+        if path.exists():
+            return path
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pass
+
+    # 2. Try common environment variables
+    xdg_downloads = os.environ.get("XDG_DOWNLOAD_DIR")
+    if xdg_downloads and Path(xdg_downloads).exists():
+        return Path(xdg_downloads)
+
+    # 3. Fallback to common names
+    home = Path.home()
+    for name in ["Downloads", "Descargas", "Téléchargements"]:
+        path = home / name
+        if path.exists():
+            return path
+            
+    # Final fallback
+    return home / "Downloads"
+
 HOME = Path.home()
-DOWNLOADS_DIR = HOME / "Descargas"
+DOWNLOADS_DIR = get_downloads_dir()
 DATA_DIR = HOME / ".local" / "share" / "download-organizer"
 DB_PATH = DATA_DIR / "history.db"
 
@@ -66,5 +94,10 @@ IGNORED_PATTERNS = [
 # LLM CONFIGURATION
 # =============================================================================
 
-LLM_PROVIDER = "openai"
-LLM_MODEL = "gpt-4.1"
+LLM_PROVIDER = os.environ.get("LLM_PROVIDER")
+LLM_MODEL = os.environ.get("LLM_MODEL")
+
+if not LLM_PROVIDER or not LLM_MODEL:
+    # We don't raise an error here to allow other tools (like configure_ui) 
+    # to run without LLM env vars, but the agent won't work without them.
+    pass

@@ -43,12 +43,20 @@ Powered by [**Agentify**](https://github.com/fa8i/Agentify).
 
 ## 🛠️ Installation
 
-1.  **Run the installer**:
+1.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/fa8i/download-organizer.git
+    cd download-organizer
+    ```
+
+2.  **Run the installation script**:
     ```bash
     ./install.sh
     ```
+    > [!NOTE]
+    > The script will automatically check for system dependencies (`libcairo2-dev`, `pkg-config`, etc.), create a virtual environment, and install all necessary Python packages.
 
-2.  **Done!**
+3.  **Done!**
     *   **Restart**: `systemctl --user restart download-organizer`
     *   **Logs**: `journalctl --user -u download-organizer -f`
 
@@ -63,5 +71,14 @@ Launch the configuration tool:
 ![Preferences Window](assets/preferences_demo.png)
 
 ### Advanced Config
-Edit `src/download_organizer/config.py` to change destination paths.
-Edit `src/download_organizer/agent.py` to modify the system prompt.
+All core settings are managed via environment variables in a `.env` file. 
+All core settings, including LLM configuration, are managed via environment variables in a `.env` file. 
+
+1.  **Copy the template**:
+    ```bash
+    cp .env.example .env
+    ```
+2.  **Configure your LLM**:
+    Edit `.env` to set your `LLM_PROVIDER`, `LLM_MODEL`, and the corresponding API key. 
+
+Check `src/download_organizer/config.py` for other internal paths, and `src/download_organizer/prompts.py` to customize the agent's behavior.

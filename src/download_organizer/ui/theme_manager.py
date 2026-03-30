@@ -4,7 +4,6 @@ import json
 import logging
 from dataclasses import dataclass, asdict, field
 from pathlib import Path
-from pathlib import Path
 from typing import Dict, Any, Optional
 
 from ..config import DATA_DIR
