@@ -97,7 +97,6 @@ try:
     LLM_PROVIDER = os.environ.get("LLM_PROVIDER")
     LLM_MODEL = os.environ.get("LLM_MODEL")
 except Exception as e:
-    # Use logger to track errors
     logger.error(f"Failed to extract LLM configuration from environment: {e}")
     LLM_PROVIDER = None
     LLM_MODEL = None

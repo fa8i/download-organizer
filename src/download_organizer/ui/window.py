@@ -42,6 +42,7 @@ class DownloadDialog(Gtk.ApplicationWindow):
         self.set_resizable(False)
         self.set_decorated(False)
         self.add_css_class("transparent-window")
+        self.set_opacity(0.0)
         
         self.timeout_id = GLib.timeout_add(timeout_sec * 1000, self.on_timeout)
         self.time_left = timeout_sec
@@ -55,6 +56,53 @@ class DownloadDialog(Gtk.ApplicationWindow):
         self.add_controller(key_controller)
         
         self.start_time = time.time()
+        self._move_attempts = 0
+
+    def force_top_left_x11(self):
+        """Best-effort positioning for X11/XWayland.
+
+        GTK4/Wayland does not allow reliable manual window positioning.
+        The window starts transparent, is moved with wmctrl, and is revealed
+        only after positioning to avoid the center-screen flicker.
+        """
+        self._move_attempts += 1
+        title = self.get_title() or "Download Organizer"
+
+        try:
+            move = subprocess.run(
+                ["wmctrl", "-r", title, "-e", "0,24,24,-1,-1"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=False,
+            )
+
+            if move.returncode != 0:
+                if self._move_attempts < 20:
+                    return True
+
+                GLib.timeout_add(80, self._reveal_after_position)
+                return False
+
+            subprocess.run(["wmctrl", "-r", title, "-b", "add,above"], check=False)
+            subprocess.run(["wmctrl", "-a", title], check=False)
+
+            GLib.timeout_add(80, self._reveal_after_position)
+            return False
+
+        except Exception as exc:
+            print(f"Could not move dialog window: {exc}", file=sys.stderr)
+
+            if self._move_attempts < 20:
+                return True
+
+            GLib.timeout_add(80, self._reveal_after_position)
+            return False
+
+    def _reveal_after_position(self):
+        self.set_opacity(1.0)
+        self.present()
+        return False
 
     def _setup_ui(self, filename, size_human):
         self.card = DownloadCard(
@@ -124,6 +172,7 @@ class OrganizerApp(Gtk.Application):
     def do_activate(self):
         win = DownloadDialog(self, self.filename, self.size_human, self.timeout)
         win.present()
+        GLib.timeout_add(150, win.force_top_left_x11)
         self.win = win
 
     def run_dialog(self):

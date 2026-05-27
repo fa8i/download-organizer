@@ -43,7 +43,13 @@ def show_download_dialog(filename: str, file_size: int, timeout: int = DIALOG_TI
         env = os.environ.copy()
         env["PYTHONUNBUFFERED"] = "1"
         env["PYTHONPATH"] = os.pathsep.join(sys.path)
-        
+        logger.info(
+            "Dialog env: DISPLAY=%s WAYLAND_DISPLAY=%s XDG_SESSION_TYPE=%s DBUS_SESSION_BUS_ADDRESS=%s",
+            env.get("DISPLAY"),
+            env.get("WAYLAND_DISPLAY"),
+            env.get("XDG_SESSION_TYPE"),
+            env.get("DBUS_SESSION_BUS_ADDRESS"),
+        )
         process = subprocess.run(
             cmd,
             capture_output=True,
@@ -52,6 +58,14 @@ def show_download_dialog(filename: str, file_size: int, timeout: int = DIALOG_TI
             env=env
         )
         
+        logger.info("Dialog return code: %s", process.returncode)
+
+        if process.stdout:
+            logger.info("Dialog stdout:\n%s", process.stdout.strip())
+
+        if process.stderr:
+            logger.error("Dialog stderr:\n%s", process.stderr.strip())
+
         output = process.stdout.strip()
         
         result_str = "timeout"

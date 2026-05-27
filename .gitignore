@@ -25,3 +25,4 @@ gtk_test.py
 
 # Generated files
 download-organizer.service
+run_download_organizer.sh
