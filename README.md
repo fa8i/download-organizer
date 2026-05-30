@@ -108,35 +108,47 @@ Launch the configuration tool:
 
 ## Usage
 
-After installation, the app starts automatically when you log into GNOME.
+After installation, **Smart Download Organizer starts automatically when you log into GNOME**.
 
-To test it, create a file in your downloads folder:
+To check that everything is working, create a test file in your downloads folder:
 
     echo "test" > "$(xdg-user-dir DOWNLOAD)/test_download_organizer.txt"
 
-A popup should appear.
+A small popup should appear asking what you want to do with the file.
 
 ---
 
 ## Logs
 
-View live logs:
+If you want to see what the app is doing, open the live logs:
 
     tail -f ~/.cache/download-organizer/app.log
+
+Press `Ctrl + C` to stop watching the logs.
 
 ---
 
 ## Start and Stop
 
-Start manually:
+### Start manually
+
+From the project folder:
 
     ./run_download_organizer.sh
 
-Stop the app:
+This runs the app in the current terminal. The terminal will stay busy because the app is watching your downloads folder.
+
+To start it in the background:
+
+    nohup ./run_download_organizer.sh >/dev/null 2>&1 &
+
+### Stop
+
+To stop the app:
 
     pkill -f "download_organizer/main.py"
 
-The app will start again automatically the next time you log in.
+The app will start again automatically the next time you log into GNOME.
 
 ---
 
@@ -144,31 +156,27 @@ The app will start again automatically the next time you log in.
 
 ### The popup does not appear
 
-Check that the app is running:
+First, check that the app is running:
 
     ps -ef | grep "download_organizer/main.py" | grep -v grep
 
-Check logs:
+Then check the logs:
 
     tail -f ~/.cache/download-organizer/app.log
 
-Start manually from the project folder:
+If it is not running, start it manually from the project folder:
 
     ./run_download_organizer.sh
 
-### The AI request fails
+Then create a test file:
 
-If you see an error like:
+    echo "test" > "$(xdg-user-dir DOWNLOAD)/test_download_organizer.txt"
 
-    429 Too Many Requests
-    insufficient_quota
-
-your LLM provider rejected the request due to quota, billing, or rate limits.  
-Check your API key, billing status, or use another provider supported by Agentify.
+---
 
 ### Reinstall cleanly
 
-If something breaks after a system upgrade:
+If something breaks after a system upgrade, recreate the virtual environment and reinstall:
 
     pkill -f "download_organizer/main.py" 2>/dev/null || true
     mv venv venv.broken-$(date +%F-%H%M%S)
@@ -176,11 +184,11 @@ If something breaks after a system upgrade:
 
 ---
 
-## Notes for Ubuntu 26.04 / Wayland
+## Ubuntu 26.04 / Wayland
 
-This version uses **GNOME Autostart** instead of `systemd --user`.
+This version is designed for **Ubuntu 26.04 with GNOME Wayland**.
 
-This is intentional: on GNOME Wayland, desktop popups launched from systemd services may not appear or may not be positioned correctly. Running the app as part of the desktop session gives better behavior for interactive dialogs.
+It starts as a normal desktop app using **GNOME Autostart**, instead of running as a `systemd --user` service. This makes the popup more reliable on Wayland.
 
 ---
 
